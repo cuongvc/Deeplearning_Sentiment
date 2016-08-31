@@ -7,7 +7,7 @@ require 'torch'
 
 -- load trainning_size
 
-matrix_words = csvigo.load{path= './data/code/data_dulich/full_train_windowsize_file.txt', mode='large', separator=' '}
+matrix_words = csvigo.load{path= './data/code/data_kinhte/full_train_windowsize_file.txt', mode='large', separator=' '}
 -- classes = {"O", "B-LOC", "B-PER", "B-ORG", "B-TOUR", "I-ORG", "I-PER", "I-TOUR", "I-LOC", "B-PRO", "I-PRO"}
 classes = {"positive", "negative", "neutral"}
 
@@ -23,7 +23,7 @@ end
 
 
 -- read labels
-labelsRaw = csvigo.load{path= './data/code/data_dulich/full_train_label_file.txt', mode='large', separator=' '}
+labelsRaw = csvigo.load{path= './data/code/data_kinhte/full_train_label_file.txt', mode='large', separator=' '}
 labels = torch.DoubleTensor(#labelsRaw)
 for i=1, #labelsRaw do    
     labels[i] = tonumber(labelsRaw[i][1]) + 1
@@ -34,7 +34,7 @@ end
 
 
 -- load test_data -- 
-matrix_words_test = csvigo.load{path= './data/code/data_dulich/full_test_windowsize_file.txt', mode='large', separator=' '}
+matrix_words_test = csvigo.load{path= './data/code/data_kinhte/full_test_windowsize_file.txt', mode='large', separator=' '}
 testingSize = #matrix_words_test
 
 data_test = torch.Tensor(testingSize, windowSize)
@@ -47,7 +47,7 @@ end
 
 
 -- read labels -- 
-labelsRawTest = csvigo.load{path= './data/code/data_dulich/full_test_label_file.txt', mode='large', separator=' '}
+labelsRawTest = csvigo.load{path= './data/code/data_kinhte/full_test_label_file.txt', mode='large', separator=' '}
 labels_test = torch.DoubleTensor(#labelsRawTest)
 for i=1, #labelsRawTest do    
      labels_test[i] = tonumber(labelsRawTest[i][1]) + 1
@@ -56,13 +56,13 @@ end
 -- print(string.format("window_size = %d, testing_size = %d", windowSize, testingSize))
 
 -- load embedded
-w2v_mat = csvigo.load{path= './data/code/data_dulich/w2vFile.txt', mode='large', separator=' '}
+w2v_mat = csvigo.load{path= './data/code/data_kinhte/w2vFile.txt', mode='large', separator=' '}
 
 rows = #w2v_mat
 cols = #w2v_mat[1] - 1 -- the last elem is \n
 
 -- load word
-words = csvigo.load{path= './data/code/data_dulich/dictionary.txt', mode='large', separator=' '}
+words = csvigo.load{path= './data/code/data_kinhte/dictionary.txt', mode='large', separator=' '}
 dictSize = #words
 embeddedSize = cols
 
@@ -102,7 +102,9 @@ model:add(nn.Reshape(K*windowSize))
 model:add(nn.Linear(K*windowSize, L))
 model:add(nn.HardTanh())
 model:add(nn.Linear(L, #classes))
-model:add(nn.LogSoftMax())
+-- model:add(nn.LogSoftMax())
+model:add(nn.SoftMax())
+
 
 -- print(model)
 
@@ -125,7 +127,8 @@ end
 -- print("weight : ")
 
 print("make ClassNLLCriterion")
-criterion = nn.ClassNLLCriterion(weight)
+-- criterion = nn.ClassNLLCriterion(weight)
+criterion = nn.CrossEntropyCriterion(weight)
 x, dl_dx = model:getParameters()
 -- print("Create ClassNLLCriterion")
 
@@ -235,7 +238,7 @@ end
 print("compile ok eval() ")
 max_iters = 300
 do
-    -- file = io.open("result_test_data_dulich.csv", "w")
+    -- file = io.open("result_test_data_kinhte.csv", "w")
     
     -- sets the default output file as test.lua
     -- io.output(file)
@@ -245,10 +248,10 @@ do
     local threshold = 1 -- how many deacreasing epochs we allow
     for iter = 1, max_iters do
     	-- print("step")
-        local loss = step(10)        
+        local loss = step(20)        
         print(string.format('Epoch: %d Current loss: %4f', iter, loss))
         -- print("eval")
-        local accuracy, true_prob, false_prob = eval(10)        
+        local accuracy, true_prob, false_prob = eval(20)        
         print(string.format('Accuracy on the validation set: %4f', accuracy))
         for x, y in pairs(true_prob) do
             print(string.format('Count label %d number of true=%d, number of false=%d, accuracy=%4f', x, y, false_prob[x], y/(y+false_prob[x])))
