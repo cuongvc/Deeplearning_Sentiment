@@ -102,8 +102,8 @@ model:add(nn.Reshape(K*windowSize))
 model:add(nn.Linear(K*windowSize, L))
 model:add(nn.HardTanh())
 model:add(nn.Linear(L, #classes))
--- model:add(nn.LogSoftMax())
-model:add(nn.SoftMax())
+model:add(nn.LogSoftMax())
+-- model:add(nn.SoftMax())
 
 
 -- print(model)
@@ -127,8 +127,8 @@ end
 -- print("weight : ")
 
 print("make ClassNLLCriterion")
--- criterion = nn.ClassNLLCriterion(weight)
-criterion = nn.CrossEntropyCriterion(weight)
+criterion = nn.ClassNLLCriterion(weight)
+-- criterion = nn.CrossEntropyCriterion(weight)
 x, dl_dx = model:getParameters()
 -- print("Create ClassNLLCriterion")
 
