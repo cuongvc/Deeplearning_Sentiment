@@ -5,8 +5,11 @@ from collections import defaultdict
 import time
 windowsize = 5
 
-file_data = "./../cong_nghe_version_2.txt"
-domain = 'congnghe'
+file_data = "./../kinh_te_version_4.txt"
+domain = 'kinhte'
+
+file_lexicon = 'Lexicon_WordList.txt'
+file_reserve = 'swapword.txt'
 
 # file_data = "./../du_lich_version_1.txt"
 # domain = 'dulich'
@@ -23,6 +26,22 @@ file_sentiment_string = "./data_" + domain + "/full_all_label_string_file.txt"
 
 label_sentiment = {'positive' : 0, 'neutral' : 1, 'negative' : 2}
 
+def read_lexicon():
+	dictLexicon = {}
+	fLexicon = codecs.open(file_lexicon, "r", "utf-8")
+	for line in fLexicon:
+		label = line.split('\t')[0]
+		word = line.split('\t')[1]
+		dictLexicon[word] = int(label)
+	return dictLexicon
+
+def read_reverse():
+	dictReverse = {}
+	fReverse = codecs.open(file_reserve, "r", "utf-8")
+	for line in fReverse:
+		word = line.split('\t')[0]
+		dictReverse[word] = 1
+	return dictReverse
 
 def make_dict():
 	# read data and make dictionary
@@ -33,8 +52,8 @@ def make_dict():
 		# print line
 		if (len(array) > 1):
 			if array[0] not in dictionary:
-				dictionary[array[0]] = len(dictionary)
-	print(len(dictionary))
+				dictionary[array[0].lower()] = len(dictionary)
+	# print(len(dictionary))
 	dictionary["spec_none"] = len(dictionary)
 
 	# write dictionary to file
@@ -56,7 +75,7 @@ def create_random_vector(dim):
 		vecString += str(vec[i]) + " "
 	return vecString
 
-def make_vector_w2v_small(dictionary):
+def make_vector_w2v_small(dictLexicon, dictReverse, dictionary):
 	# make vector w2v smaller to keep only word is appeaded in dictionary
 	fW2VFull = codecs.open(fileW2VFull, "r", "utf-8")
 	fW2VSmall = codecs.open(fileW2VSmall, "w", "utf-8")
@@ -71,22 +90,36 @@ def make_vector_w2v_small(dictionary):
 	i = 0
 	for word in dictionary:
 		i += 1
+		sentiWordStr = ''
+		if word in dictLexicon:
+
+			if dictLexicon[word] == 1:
+				sentiWordStr += '1 0 '
+			else:
+				sentiWordStr += '0 1 '
+			if word == 'hay':
+				print("hay sentiWordStr : " + sentiWordStr)
+		else:
+			sentiWordStr += '0 0 '
+		if word in dictReverse:
+			sentiWordStr += '1'
+		else:
+			sentiWordStr += '0'
 		if word in w2vSmall:
 			if i == len(dictionary):
-				fW2VSmall.write(w2vSmall[word])
+				fW2VSmall.write(w2vSmall[word] + ' ' + sentiWordStr)
 			else:
-				fW2VSmall.write(w2vSmall[word] + '\n')	
-			
+				fW2VSmall.write(w2vSmall[word] + ' ' + sentiWordStr + '\n')			
 		else:
 			if i == len(dictionary):
-				fW2VSmall.write(w2vSmall["spec_none"])
+				fW2VSmall.write(w2vSmall["spec_none"] + ' ' + sentiWordStr)
 			else:
-				fW2VSmall.write(w2vSmall["spec_none"] + '\n')
+				fW2VSmall.write(w2vSmall["spec_none"] + ' ' + sentiWordStr + '\n')
 	fW2VFull.close()
 	fW2VSmall.close()
 	return w2vSmall
 
-def make_vectorWindowSize(dictionary, words, i):
+def make_vectorWindowSize(dictLexicon, dictReverse, dictionary, words, i):
 	# vector is string contains list index of word in a windowsize
 	vectorWindowSize = ""
 	# tmpVector = ""
@@ -118,7 +151,7 @@ def make_vectorWindowSize(dictionary, words, i):
 	vectorWindowSize = vectorWindowSize[:-1]
 	# print(tmpVector)
 	# print(vectorWindowSize)
-	print(len(vectorWindowSize.split(' ')))
+	# print(len(vectorWindowSize.split(' ')))
 	# print(words)
 	# print(i)
 	# print('\n')
@@ -127,7 +160,7 @@ def make_vectorWindowSize(dictionary, words, i):
 
 # Make vector present a Term/Aspect by windowsize
 
-def make_windowsize(dictionary):
+def make_windowsize(dictLexicon, dictReverse, dictionary):
 	fDataRaw = codecs.open(file_data, "r", "utf-8")
 	fWindowsize = codecs.open(file_windowsize, "w", "utf-8")
 	fSentiment = codecs.open(file_sentiment, "w", "utf-8")
@@ -139,7 +172,7 @@ def make_windowsize(dictionary):
 	numLine = 0
 	for line in fDataRaw:
 		numLine += 1
-		print("numLine : " + str(numLine))
+		# print("numLine : " + str(numLine))
 		line = line.replace('\n', '')
 		line = line.replace('\r', '')
 		array = line.split('\t')
@@ -158,7 +191,7 @@ def make_windowsize(dictionary):
 				# print(words[i])
 				if sentiments[i] != "non-senti":
 					# print(sentiments[i])
-					vectorWindowSize = make_vectorWindowSize(dictionary, words, i)
+					vectorWindowSize = make_vectorWindowSize(dictLexicon, dictReverse, dictionary, words, i)
 					if index == 0:
 						index += 1
 						fWindowsize.write(vectorWindowSize)
@@ -203,6 +236,8 @@ def make_cross_validation():
 
 if __name__ == "__main__":
 	dictionary = make_dict()
-	make_vector_w2v_small(dictionary)
-	make_windowsize(dictionary)
+	dictLexicon = read_lexicon()
+	dictReverse = read_reverse()
+	make_vector_w2v_small(dictLexicon, dictReverse, dictionary)
+	make_windowsize(dictLexicon, dictReverse, dictionary)
 	make_cross_validation()
