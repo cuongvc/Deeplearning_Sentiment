@@ -60,6 +60,7 @@ w2v_mat = csvigo.load{path= './data/code/data_kinhte/w2vFile.txt', mode='large',
 
 rows = #w2v_mat
 cols = #w2v_mat[1] - 1 -- the last elem is \n
+-- print('cols : %d', cols)
 
 -- load word
 words = csvigo.load{path= './data/code/data_kinhte/dictionary.txt', mode='large', separator=' '}
@@ -75,6 +76,7 @@ embeddedSize = cols
 print("create tensor")
 csv_tensor = torch.Tensor(rows, cols)
 -- print(string.format("Generate new tensor at size %d x %d", rows, cols))
+
 
 for i=1, rows do
     for j=1, cols do                 

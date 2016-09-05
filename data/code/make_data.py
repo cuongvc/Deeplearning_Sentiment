@@ -72,7 +72,10 @@ def create_random_vector(dim):
 	vecString = ""
 	vec = np.random.rand(dim)
 	for i in range(0, len(vec)):
-		vecString += str(vec[i]) + " "
+		if i == len(vec) - 1:
+			vecString += str(vec[i])
+		else:	
+			vecString += str(vec[i]) + " "
 	return vecString
 
 def make_vector_w2v_small(dictLexicon, dictReverse, dictionary):
@@ -92,19 +95,18 @@ def make_vector_w2v_small(dictLexicon, dictReverse, dictionary):
 		i += 1
 		sentiWordStr = ''
 		if word in dictLexicon:
-
 			if dictLexicon[word] == 1:
-				sentiWordStr += '1 0 '
+				sentiWordStr += '1.0 0.0 '
 			else:
-				sentiWordStr += '0 1 '
+				sentiWordStr += '0.0 1.0 '
 			if word == 'hay':
 				print("hay sentiWordStr : " + sentiWordStr)
 		else:
-			sentiWordStr += '0 0 '
+			sentiWordStr += '0.0 0.0 '
 		if word in dictReverse:
-			sentiWordStr += '1'
+			sentiWordStr += '1.0'
 		else:
-			sentiWordStr += '0'
+			sentiWordStr += '0.0'
 		if word in w2vSmall:
 			if i == len(dictionary):
 				fW2VSmall.write(w2vSmall[word] + ' ' + sentiWordStr)
