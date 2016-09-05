@@ -238,7 +238,7 @@ eval = function(batch_size)
     return count/testingSize, true_prob, false_prob
 end
 print("compile ok eval() ")
-max_iters = 100
+max_iters = 300
 do
     -- file = io.open("result_test_data_kinhte.csv", "w")
     
