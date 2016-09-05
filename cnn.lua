@@ -135,7 +135,7 @@ x, dl_dx = model:getParameters()
 -- print("Create ClassNLLCriterion")
 
 sgd_params = {
-   learningRate = 1e-3,
+   learningRate = 1e-2,
    learningRateDecay = 1e-4,
    weightDecay = 1e-3,
    momentum = 1e-4
